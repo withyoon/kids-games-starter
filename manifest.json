@@ -7,12 +7,12 @@
   "theme_color": "#4f46e5",
   "icons": [
     {
-      "src": "../assets/images/common/haeun.png",
+      "src": "assets/images/common/haeun.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "../assets/images/common/haeun.png",
+      "src": "assets/images/common/haeun.png",
       "sizes": "512x512",
       "type": "image/png"
     }
