@@ -505,7 +505,9 @@
   function setCatsCollapsed(collapsed){
     headEl.classList.toggle('collapsed', collapsed);
     catToggle.setAttribute('aria-expanded', String(!collapsed));
-    catToggleText.textContent = collapsed ? '카테고리 보이기' : '카테고리 숨기기';
+    //catToggleText.textContent = collapsed ? '카테고리 보이기' : '카테고리 숨기기';
+    // 문구 제거 (텍스트 갱신 안함)
+    catToggleText.textContent = '';
     localStorage.setItem('catsCollapsed', collapsed ? '1' : '0');
     fitGrid(rows, cols);
   }
