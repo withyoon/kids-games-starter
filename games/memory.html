@@ -467,12 +467,7 @@
     if (!trigger) return;
 
     // 초기화
-    hintCount = 2;
-    hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
-    hintBtn.disabled = false;
-    hintBtn.style.opacity = 1;
-    hintBtn.style.cursor = 'pointer';
-
+    resetHintBtn();
     startOverlay.classList.remove('hidden');
   });
 
@@ -491,14 +486,24 @@
 
   function startRefresh() {
     // 초기화
-    hintCount = 2;
-    hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
-    hintBtn.disabled = false;
-    hintBtn.style.opacity = 1;
-    hintBtn.style.cursor = 'pointer';
+    resetHintBtn();
     renderGrid();
 
     showHint(true, 3000);  // 자동 실행: 3초
+  }
+
+  function resetHintBtn() {
+    hintCount = 2;
+    hintBtn.textContent = `🎁 뒤집기 찬스 (${hintCount})`;
+    hintBtn.disabled = false;
+    hintBtn.style.opacity = 1;
+    hintBtn.style.cursor = 'pointer';
+  }
+
+  function disableHintBtn() {
+    hintBtn.disabled = true;
+    hintBtn.style.opacity = 0.6;
+    hintBtn.style.cursor = 'not-allowed';
   }
 
   function getCatFromUrl(src){
@@ -599,11 +604,9 @@
 
     if (!isAuto) {
       hintCount--;
-      hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
+      hintBtn.textContent = `🎁 뒤집기 찬스 (${hintCount})`;
       if (hintCount <= 0) {
-        hintBtn.disabled = true;
-        hintBtn.style.opacity = 0.6;
-        hintBtn.style.cursor = 'not-allowed';
+        disableHintBtn();
       }
     }
   }
