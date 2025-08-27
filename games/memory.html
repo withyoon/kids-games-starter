@@ -163,31 +163,37 @@
       border-color: #0f172a;
     }
 
-    /* 카테고리 보이기 버튼 */
+    /* 카테고리 보이기 버튼 (아이콘 전용) */
     .pill-toggle {
-      font-size: 18px;
-      font-weight: 900;
+      width: 36px;          /* 정사각형 버튼 */
+      height: 36px;
       background: #fff;
-      color: #111827;
       border: 1px solid #e5e7eb;
-      cursor: pointer;
-      padding: 12px 24px;
-      border-radius: 999px;
+      border-radius: 50%;   /* 동그랗게 */
       display: flex;
       align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       transition: background 0.2s ease;
+      padding: 0;           /* 글자 공간 제거 */
     }
     .pill-toggle:hover {
       background: #f3f4f6;
     }
-    .pill-toggle .chev{
-      display:inline-block; width:10px; height:10px;
-      border-right:2px solid #111827; border-bottom:2px solid #111827;
-      transform:rotate(45deg); transition:transform .2s ease;
+    .pill-toggle .chev {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid #111827;
+      border-bottom: 2px solid #111827;
+      transform: rotate(45deg);
+      transition: transform 0.2s ease;
     }
-    .head.collapsed .pill-toggle .chev{ transform:rotate(-135deg); } /* 접힘: 위쪽 화살 */
+    /* 접혔을 때 위쪽 화살표 */
+    .head.collapsed .pill-toggle .chev {
+      transform: rotate(-135deg);
+    }
 
     /* ===== 그리드/카드 ===== */
     #grid{
@@ -390,7 +396,6 @@
           <div class="toolbar-actions">
             <button class="btn secondary" id="btnRefresh">한번 더하기</button>
             <button id="catToggle" class="pill-toggle" aria-expanded="false" aria-controls="catsWrap">
-              <span id="catToggleText">카테고리 보이기</span>
               <span class="chev"></span>
             </button>
           </div>
@@ -505,9 +510,6 @@
   function setCatsCollapsed(collapsed){
     headEl.classList.toggle('collapsed', collapsed);
     catToggle.setAttribute('aria-expanded', String(!collapsed));
-    //catToggleText.textContent = collapsed ? '카테고리 보이기' : '카테고리 숨기기';
-    // 문구 제거 (텍스트 갱신 안함)
-    catToggleText.textContent = '';
     localStorage.setItem('catsCollapsed', collapsed ? '1' : '0');
     fitGrid(rows, cols);
   }
