@@ -1,0 +1,58 @@
+
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="../stylesheet" href="../styles/app.css" onload="this.rel='stylesheet'">
+<title>물 주기 화분</title>
+<style>
+  .stage{display:grid;grid-template-columns:1fr;gap:12px}
+  .bar{height:14px;background:#e5e7eb;border-radius:999px;overflow:hidden}
+  .fill{height:100%;width:0;background:#22c55e;transition:width .3s}
+  .plant{display:grid;place-items:center;height:50vh;background:#fff;border:1px solid var(--border);border-radius:var(--radius)}
+  .plant img{max-height:46vh;object-fit:contain}
+</style>
+</head><body>
+<div class="container">
+  <h1>물 주기 화분</h1>
+  <div class="toolbar">
+    <button id="waterBtn">💧 물 주기</button>
+    <button id="resetBtn">처음으로</button>
+    <label>단계 이미지 세트 선택
+      <select id="theme">
+        <option value="default">기본 식물</option>
+        <option value="flower">꽃</option>
+      </select>
+    </label>
+  </div>
+  <div class="stage card">
+    <div class="plant"><img id="plantImg" alt="plant" src="../assets/images/plant_1.png"></div>
+    <div class="bar"><div id="fill" class="fill"></div></div>
+  </div>
+  <p class="footer"><a href="../index.html" class="btn" style="text-decoration:none">← 메뉴</a></p>
+</div>
+<script type="module">
+import { $ } from '../js/common.js';
+
+const STEPS = 5; // 1~5 단계 이미지
+let level = 1;
+
+const img = $('#plantImg');
+const fill = $('#fill');
+const theme = $('#theme');
+
+function setImage(){
+  const t = theme.value;
+  const path = t === 'flower' ? '../assets/images/flower_' : '../assets/images/plant_';
+  img.src = path + level + '.png';
+  fill.style.width = ((level-1)/(STEPS-1))*100 + '%';
+}
+$('#waterBtn').addEventListener('click', ()=>{
+  level = Math.min(STEPS, level+1);
+  setImage();
+});
+$('#resetBtn').addEventListener('click', ()=>{
+  level = 1; setImage();
+});
+theme.addEventListener('change', ()=>{ level = 1; setImage(); });
+setImage();
+</script>
+</body></html>

@@ -1,0 +1,98 @@
+
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="../stylesheet" href="../styles/app.css" onload="this.rel='stylesheet'">
+<title>빙고 게임</title>
+<style>
+  .board{display:grid;gap:8px;grid-template-columns:repeat(5,1fr);}
+  .cell{aspect-ratio:1/1;display:grid;place-items:center;border:2px solid var(--border);border-radius:12px;background:#fff;font-size:clamp(16px,4vw,28px);font-weight:700;cursor:pointer;user-select:none}
+  .cell.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+  .toolbar{justify-content:space-between}
+</style>
+</head><body>
+<div class="container">
+  <h1>빙고 게임</h1>
+  <div class="toolbar">
+    <div>
+      <label>종류</label>
+      <select id="mode">
+        <option value="numbers">숫자(1~25)</option>
+        <option value="korean">한글 ㄱ~ㅎ</option>
+        <option value="images">그림(assets/images)</option>
+      </select>
+    </div>
+    <button id="shuffleBtn">새 게임</button>
+  </div>
+  <div id="board" class="board"></div>
+  <p id="status" class="card" style="margin-top:12px">완성 줄: <strong id="lines">0</strong></p>
+  <p class="footer"><a href="../index.html" class="btn" style="text-decoration:none">← 메뉴</a></p>
+</div>
+<script type="module">
+import { $, shuffle } from '../js/common.js';
+
+const board = $('#board');
+const linesEl = $('#lines');
+const statusEl = $('#status');
+const modeSel = $('#mode');
+
+let size = 5;
+let items = [];
+
+function genItems(){
+  const mode = modeSel.value;
+  if(mode === 'numbers'){
+    items = shuffle(Array.from({length: size*size}, (_,i)=> (i+1).toString()));
+  } else if(mode === 'korean'){
+    const consonants = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ'.split('').slice(0,size*size);
+    items = shuffle(consonants);
+  } else {
+    // 이미지 모드: assets/images 폴더에 img1.png ... img25.png 넣으면 자동 로드
+    items = Array.from({length: size*size}, (_,i)=> `../assets/images/img${i+1}.png`);
+  }
+}
+
+function draw(){
+  board.innerHTML = '';
+  genItems();
+  for(let i=0;i<size*size;i++){
+    const div = document.createElement('div');
+    div.className='cell';
+    const mode = modeSel.value;
+    if(mode==='images'){
+      const img = document.createElement('img');
+      img.src = items[i];
+      img.alt = `img${i+1}`;
+      div.appendChild(img);
+    } else {
+      div.textContent = items[i];
+    }
+    div.addEventListener('click', ()=>{
+      div.classList.toggle('on');
+      updateLines();
+    });
+    board.appendChild(div);
+  }
+  updateLines();
+}
+
+function updateLines(){
+  const cells = [...board.children];
+  const on = (r,c)=> cells[r*size+c].classList.contains('on');
+  let count = 0;
+  // 가로/세로
+  for(let i=0;i<size;i++){
+    if(Array.from({length:size}, (_,c)=> on(i,c)).every(Boolean)) count++;
+    if(Array.from({length:size}, (_,r)=> on(r,i)).every(Boolean)) count++;
+  }
+  // 대각
+  if(Array.from({length:size}, (_,i)=> on(i,i)).every(Boolean)) count++;
+  if(Array.from({length:size}, (_,i)=> on(i,size-1-i)).every(Boolean)) count++;
+  linesEl.textContent = count;
+  statusEl.style.background = count>=5 ? '#22c55e20' : '';
+}
+
+$('#shuffleBtn').addEventListener('click', draw);
+modeSel.addEventListener('change', draw);
+draw();
+</script>
+</body></html>

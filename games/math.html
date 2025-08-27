@@ -1,0 +1,75 @@
+
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="../stylesheet" href="../styles/app.css" onload="this.rel='stylesheet'">
+<title>연산 문제</title>
+<style>
+  .quiz{display:grid;gap:12px}
+  .q{font-size:clamp(28px,6vw,48px);text-align:center}
+  .inputs{display:flex;gap:10px;justify-content:center}
+  .inputs input{width:140px;text-align:center;font-size:24px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:6px 10px;border:1px solid var(--border);border-radius:999px;cursor:pointer}
+  .chip.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+</style>
+</head><body>
+<div class="container">
+  <h1>연산 문제</h1>
+  <div class="card quiz">
+    <div class="chips" id="ops">
+      <div data-op="+" class="chip on">+</div>
+      <div data-op="-" class="chip on">−</div>
+      <div data-op="*" class="chip">×</div>
+    </div>
+    <div class="toolbar">
+      <label>최대 숫자 <input id="maxN" type="number" min="5" value="20"></label>
+      <button id="nextBtn">다음 문제</button>
+    </div>
+    <div class="q" id="question">?</div>
+    <div class="inputs">
+      <input id="answer" placeholder="정답 입력" inputmode="numeric" />
+      <button id="checkBtn">확인</button>
+    </div>
+    <div id="result"></div>
+  </div>
+  <p class="footer"><a href="../index.html" class="btn" style="text-decoration:none">← 메뉴</a></p>
+</div>
+<script type="module">
+import { $, rand } from '../js/common.js';
+
+let a=0,b=0,op='+';
+const qEl=$('#question'), ans=$('#answer'), res=$('#result');
+
+function currentOps(){
+  return [...document.querySelectorAll('.chip.on')].map(x=>x.dataset.op);
+}
+function newQ(){
+  const ops = currentOps();
+  if(ops.length===0){ alert('연산자를 하나 이상 선택하세요.'); return; }
+  op = ops[rand(ops.length)];
+  const max = Math.max(5, parseInt($('#maxN').value||'20',10));
+  a = rand(max)+1;
+  b = rand(max)+1;
+  if(op==='-'){ if(b>a) [a,b]=[b,a]; }
+  if(op==='*'){ a = rand(Math.min(9,max))+1; b = rand(Math.min(9,max))+1; }
+  qEl.textContent = `${a} ${op} ${b} = ?`;
+  ans.value=''; res.textContent='';
+  ans.focus();
+}
+function evalAns(){
+  const val = Number(ans.value);
+  const correct = op==='+'? a+b : op==='-'? a-b : a*b;
+  if(Number.isNaN(val)){ res.textContent='숫자를 입력해주세요.'; return; }
+  if(val===correct){ res.textContent='정답! 👍'; res.style.color='#16a34a'; }
+  else { res.textContent=`앗! 정답은 ${correct}`; res.style.color='#ef4444'; }
+}
+$('#nextBtn').addEventListener('click', newQ);
+$('#checkBtn').addEventListener('click', evalAns);
+document.addEventListener('keydown', (e)=>{ if(e.key==='Enter') evalAns(); });
+
+document.querySelectorAll('.chip').forEach(ch=>{
+  ch.addEventListener('click', ()=> ch.classList.toggle('on'));
+});
+newQ();
+</script>
+</body></html>

@@ -1,0 +1,912 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>하은앱-이미지게임</title>
+  <style>
+    :root{
+      --gap: clamp(8px, 1.2vw, 14px);
+    }
+    *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+    html, body{width:100%; height:100%; margin:0; overflow:hidden; font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Noto Sans KR',sans-serif;}
+    body{background:linear-gradient(180deg,#fff 0%,#fafafa 100%);}
+
+    .panel{
+      width:100%; height:100%;
+      display:grid; grid-template-rows:auto 1fr; gap:var(--gap); padding:var(--gap);
+    }
+
+    /* ===== 헤더 ===== */
+    .head{
+      position:sticky; top:0; z-index:10;
+      padding: var(--gap) 16px;   /* 좌우 여백 추가 */
+      background:rgba(255,255,255,.85);
+      backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+      border-bottom:1px solid #e9e9ee;
+      box-shadow:0 2px 12px rgba(0,0,0,.04);
+      transition:padding .2s ease;
+    }
+
+    /* 헤더 내부 레이아웃: 좌(뒤로가기) + 중앙/오른쪽 */
+    .head-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    /* 뒤로가기 버튼 */
+    .back-btn {
+      font-size: 28px;
+      font-weight: 900;  /* 기존 bold보다 더 굵게 */
+      padding: 10px 16px;
+      color: #111827;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      appearance: none;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      border-radius: 6px;
+      transition: color 0.2s ease;
+    }
+
+    .back-btn:hover {
+      color: #374151;
+      background-color: rgba(0, 0, 0, 0.05); /* 약간 배경 추가해서 호버감 더 좋게 */
+    }
+
+    /* 카테고리 줄 */
+    .cats-wrap{ display:flex; justify-content:center; }
+    .head.collapsed .cats-wrap{ display:none; } /* ← 접히면 완전히 감춤 */
+
+    /* 탭(카테고리) */
+    .cats{
+      display:flex; gap:18px; align-items:center; overflow-x:auto; scrollbar-width:none; padding:2px 8px 4px;
+    }
+    .cats::-webkit-scrollbar{display:none;}
+    .tab {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      position: relative;
+      white-space: nowrap;
+      padding: 10px 12px 12px;
+      font-weight: 900;
+      font-size: 18px;
+      color: #6b7280;
+    }
+    .tab:hover{color:#374151;}
+    .tab.active{color:#111827;}
+    .tab.active::after{
+      content:''; position:absolute; left:6px; right:6px; bottom:0; height:3px; background:#111827; border-radius:999px;
+    }
+
+    /* 툴바 줄 */
+    .toolbar{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      overflow-x:auto; scrollbar-width:none;
+    }
+    .toolbar::-webkit-scrollbar{display:none;}
+
+    .seg {
+      display: flex;
+      gap: 6px;
+      padding: 6px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      align-items: center;
+    }
+    .seg-btn {
+      appearance: none;
+      background: transparent;
+      border: 0;
+      cursor: pointer;
+      padding: 10px 18px; /* 패딩 키움 */
+      border-radius: 8px;
+      font-weight: 900;   /* bold 정도 맞춤 */
+      font-size: 18px;    /* 폰트 키움 */
+      color: #374151;
+      white-space: nowrap;
+    }
+    .seg-btn:hover{background:#f3f4f6;}
+    .seg-btn.active{background:#111827; color:#fff;}
+
+    /* 중앙: 뒤집기 찬스 */
+    .toolbar-hint-center {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+    #hintBtn.hint-big {
+      font-size: 18px;
+      font-weight: 900;
+      background: #facc15;
+      color: #111827;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 999px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s ease;
+    }
+    #hintBtn.hint-big:hover {
+      background: #eab308;
+    }
+    #hintBtn.hint-big:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .toolbar-actions{ display:flex; gap:10px; align-items:center; }
+    /* 한번더하기 버튼 */
+    .btn.secondary {
+      font-size: 18px;
+      font-weight: 900;
+      background: #111827;
+      color: #fff;
+      border: 1px solid #111827;
+      cursor: pointer;
+      padding: 12px 24px;
+      border-radius: 999px;
+      white-space: nowrap;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: background 0.2s ease;
+    }
+    .btn.secondary:hover {
+      background: #0f172a;
+      border-color: #0f172a;
+    }
+
+    /* 카테고리 보이기 버튼 */
+    .pill-toggle {
+      font-size: 18px;
+      font-weight: 900;
+      background: #fff;
+      color: #111827;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      padding: 12px 24px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+      transition: background 0.2s ease;
+    }
+    .pill-toggle:hover {
+      background: #f3f4f6;
+    }
+    .pill-toggle .chev{
+      display:inline-block; width:10px; height:10px;
+      border-right:2px solid #111827; border-bottom:2px solid #111827;
+      transform:rotate(45deg); transition:transform .2s ease;
+    }
+    .head.collapsed .pill-toggle .chev{ transform:rotate(-135deg); } /* 접힘: 위쪽 화살 */
+
+    /* ===== 그리드/카드 ===== */
+    #grid{
+      --size:120px; --cols:4;
+      display:grid; gap:var(--gap); justify-content:center; align-content:center;
+      grid-template-columns:repeat(var(--cols),var(--size)); grid-auto-rows:var(--size);
+      height:100%;
+    }
+    .card{
+      width:var(--size); height:var(--size);
+      cursor:pointer; border-radius:12px; background:#fff;
+      border:2px solid #3b3b3b; box-shadow:0 4px 12px rgba(0,0,0,.15);
+      transform-style:preserve-3d; transition:transform .25s cubic-bezier(.25,.8,.25,1); position:relative;
+    }
+    .card.flip{ transform:rotateY(180deg); }
+    .face{ position:absolute; inset:0; border-radius:inherit; overflow:hidden; display:flex; align-items:center; justify-content:center; backface-visibility:hidden; }
+    .front{ transform:rotateY(180deg); background:#fff; }
+    .face img{ max-width:80%; max-height:80%; object-fit:contain; }
+    .face img.fill{ width:100%; height:100%; object-fit:cover; object-position:center; border-radius:inherit; }
+    .back {
+      transform: rotateY(0deg);
+      background: repeating-linear-gradient(
+              45deg,
+              #f9fafb,
+              #f9fafb 10px,
+              #e5e7eb 10px,
+              #e5e7eb 20px
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .back::after {
+      content:'';
+      width:100%; height:100%;
+      background:url('../assets/images/common/card_back.png') no-repeat center;
+      background-size:65%;
+    }
+    .matched .front{ filter:saturate(.92) opacity(.85); }
+
+    .hint-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      background: rgba(0, 0, 0, 0.25); /* 반투명 */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto; /* 클릭 막음 */
+      font-size: 8vw;
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 4px 12px rgba(0,0,0,0.7);
+      user-select: none;
+    }
+    .hint-overlay.hidden {
+      display: none;
+    }
+
+    .start-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .start-btn {
+      font-size: 8vw;
+      font-weight: 900;
+      padding: 20px 40px;
+      background: #111827;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.7);
+      user-select: none;
+      transition: background 0.3s ease;
+    }
+    .start-btn:hover {
+      background: #374151;
+    }
+
+    .cancel-btn {
+      font-size: 8vw;
+      font-weight: 900;
+      padding: 20px 40px;
+      background: white;
+      color: #111827;
+      border: 2px solid #111827;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      user-select: none;
+      transition: background 0.3s ease, color 0.3s ease;
+      margin-top: 20px;
+    }
+    .cancel-btn:hover {
+      background: #f3f4f6; /* 약간 밝게 */
+      color: #000000;
+    }
+
+    .hint-countdown {
+      animation: scalePop 0.6s ease;
+      font-size: 18vw; /* 추가: 숫자 자체 크기도 키움 */
+      opacity: 0.65;
+    }
+
+    @keyframes scalePop {
+      0%   { transform: scale(1); opacity: 0; }
+      50%  { transform: scale(2); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .card .cover-black {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: inherit;
+      z-index: 5;
+      pointer-events: none;
+      display: none;
+    }
+
+    /* 힌트 중이면 표시 */
+    .card.hint-hide .cover-black {
+      display: block;
+    }
+
+    /* ===== WIN MODAL ===== */
+    .modal {
+      position: fixed; inset: 0; z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(6px);
+    }
+    .modal.open { display: flex; }
+
+    .modal__box{
+      width: min(92vw, 720px);
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      overflow: hidden;
+    }
+
+    .modal__media-wrap {
+      position: relative;
+    }
+    .modal__label {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 4px 12px rgba(0,0,0,.6);
+      pointer-events: none; /* 클릭 막지 않음 */
+    }
+
+    .modal__media{
+      display:block; width:100%; max-height:70vh; object-fit:cover;
+      background:#000;
+    }
+
+    .modal__footer{
+      display:flex; gap:10px; justify-content:center; align-items:center;
+      padding:12px 14px; border-top:1px solid #eee; background:#fff;
+    }
+
+    .modal__btn{
+      appearance:none; border:0; cursor:pointer;
+      padding:10px 16px; border-radius:10px; font-weight:800; font-size:40px;
+    }
+    .modal__btn--primary{ background:#111827; color:#fff; }
+    .modal__btn--ghost{ background:#f3f4f6; color:#111827; }
+  </style>
+</head>
+<body>
+<div class="panel">
+  <header class="head collapsed" id="head"><!-- 기본: 접힘(1줄) -->
+    <div class="head-inner">
+      <!-- 뒤로가기 버튼 -->
+      <button id="backBtn" class="back-btn" aria-label="뒤로가기">←</button>
+
+      <div style="flex:1;">
+        <div class="cats-wrap" id="catsWrap">
+          <div class="cats" id="cats"></div>
+        </div>
+
+        <div class="toolbar" id="toolbar">
+          <div class="seg" id="sizeSeg"></div>
+
+          <!-- 가운데: 뒤집기 찬스 -->
+          <div class="toolbar-hint-center">
+            <button id="hintBtn" class="hint-big" aria-label="뒤집기 찬스">🎁 뒤집기 찬스 (2)</button>
+          </div>
+
+          <!-- 오른쪽: 한번더하기 + 카테고리 -->
+          <div class="toolbar-actions">
+            <button class="btn secondary" id="btnRefresh">한번 더하기</button>
+            <button id="catToggle" class="pill-toggle" aria-expanded="false" aria-controls="catsWrap">
+              <span id="catToggleText">카테고리 보이기</span>
+              <span class="chev"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="grid"></div>
+</div>
+<!-- 오버레이 + 시작하기 버튼 -->
+<div id="startOverlay" class="hint-overlay hidden">
+  <div class="start-buttons">
+    <button class="start-btn">시작하기</button>
+    <button class="cancel-btn">다시선택</button>
+  </div>
+</div>
+<!-- 오버레이 + 카운트다운 -->
+<div id="hintOverlay" class="hint-overlay" style="display:none;" aria-hidden="true">
+  <div class="hint-countdown" id="hintCountdown">3</div>
+</div>
+
+<script type="module">
+  const grid     = document.getElementById('grid');
+  const sizeSeg  = document.getElementById('sizeSeg');
+  const catsBar  = document.getElementById('cats');
+  const headEl   = document.getElementById('head');
+  const btnRefresh = document.getElementById('btnRefresh');
+  const catToggle  = document.getElementById('catToggle');
+  const catToggleText = document.getElementById('catToggleText');
+  const hintOverlay = document.getElementById('hintOverlay');
+  const hintCountdown = document.getElementById('hintCountdown');
+  const startOverlay = document.getElementById('startOverlay');
+  const startBtn = document.querySelector('.start-btn');
+  const cancelBtn = document.querySelector('.cancel-btn');
+  const hintBtn = document.getElementById('hintBtn');
+  let hintCount = 2;
+
+  /* 카테고리 매핑 */
+  const CATEGORY_MAP = [
+    { id:'fruits',        name:'과일' },
+    { id:'vehicles',      name:'탈것' },
+    { id:'buttDetective', name:'엉덩이탐정' },
+    { id:'breadBarber',   name:'브래드이발소' },
+    { id:'huntrix',       name:'헌터릭스' },
+    { id:'kids',          name:'하림하은' },
+  ];
+
+  const PRESETS = [[3,4],[4,4],[4,5],[5,4],[5,6],[6,6]];
+  const FILL_CATS = new Set(['kids', 'huntrix']); // 꽉 채울 카테고리
+
+  let rows=4, cols=4;
+  let allFiles=[], lock=false, first=null, second=null, matchedPairs=0, totalPairs=0;
+  let currentCat = null; // null = 랜덤
+
+  function $shuffle(array) {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex !== 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+  }
+
+  // 이벤트 위임으로 start-trigger 클릭 처리
+  document.body.addEventListener('click', (e) => {
+    const trigger = e.target.closest('.start-trigger');
+    if (!trigger) return;
+
+    // 초기화
+    hintCount = 2;
+    hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
+
+    startOverlay.classList.remove('hidden');
+  });
+
+  startBtn.addEventListener('click', () => {
+    startOverlay.classList.add('hidden');   // 오버레이 숨김
+    startCountdown();                       // 카운트다운 시작 함수 호출
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    startOverlay.classList.add('hidden');   // 오버레이 숨김
+  });
+
+  function startCountdown() {
+    showHint(true, 3000);  // 자동 실행: 3초
+  }
+
+  function startRefresh() {
+    // 초기화
+    hintCount = 2;
+    hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
+    renderGrid();
+
+    showHint(true, 3000);  // 자동 실행: 3초
+  }
+
+  function getCatFromUrl(src){
+    const m = src.match(/\/memory\/(?:images\/)?([^/]+)\//);
+    return m ? m[1] : null;
+  }
+  function shouldFill(src){
+    const catInUrl = getCatFromUrl(src);
+    if (catInUrl && FILL_CATS.has(catInUrl)) return true;
+    if (currentCat && FILL_CATS.has(currentCat)) return true;
+    return false;
+  }
+
+  /* 토글 동작 */
+  function setCatsCollapsed(collapsed){
+    headEl.classList.toggle('collapsed', collapsed);
+    catToggle.setAttribute('aria-expanded', String(!collapsed));
+    catToggleText.textContent = collapsed ? '카테고리 보이기' : '카테고리 숨기기';
+    localStorage.setItem('catsCollapsed', collapsed ? '1' : '0');
+    fitGrid(rows, cols);
+  }
+  catToggle.addEventListener('click', ()=> setCatsCollapsed(!headEl.classList.contains('collapsed')));
+
+  /* 카테고리 탭 */
+  function renderCategories(){
+    catsBar.innerHTML = '';
+    const tabs = [{ id:null, name:'랜덤' }, ...CATEGORY_MAP];
+    tabs.forEach(({id,name})=>{
+      const b = document.createElement('button');
+      b.className = 'tab start-trigger';
+      b.textContent = name;
+      if (id === currentCat) b.classList.add('active');
+      b.addEventListener('click', async ()=>{
+        currentCat = id;
+        [...catsBar.querySelectorAll('.tab')].forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        await loadList();
+        renderSizeSeg();
+        renderGrid();
+      });
+      catsBar.appendChild(b);
+    });
+  }
+
+  /* 크기 세그먼트 */
+  function renderSizeSeg(){
+    sizeSeg.innerHTML = '';
+    PRESETS.forEach(([r,c])=>{
+      const needPairs=(r*c)/2;
+      const enough=allFiles.length>=needPairs;
+      const btn=document.createElement('button');
+      btn.className='seg-btn start-trigger';
+      btn.textContent=`${r}×${c}`;
+      if(!enough) btn.disabled=true;
+      if(r===rows && c===cols) btn.classList.add('active');
+      btn.addEventListener('click',()=>{
+        if(!enough) return;
+        rows=r; cols=c;
+        [...sizeSeg.querySelectorAll('.seg-btn')].forEach(x=>x.classList.remove('active'));
+        btn.classList.add('active');
+        renderGrid();
+      });
+      sizeSeg.appendChild(btn);
+    });
+  }
+
+  /* 새로고침 */
+  btnRefresh.addEventListener('click', ()=>startRefresh());
+
+  // 힌트 실행 함수
+  function showHint(isAuto = false, duration = 3000) {
+    if (lock || (!isAuto && hintCount <= 0)) return;
+
+    const allCards = [...grid.querySelectorAll('.card')];
+    if (!allCards.length) return;
+
+    lock = true;
+
+    // 힌트 가림 상태 적용
+    allCards.forEach(card => {
+      if (card.classList.contains('matched')) {
+        card.classList.add('hint-hide'); // 검은 가림막 표시
+      } else {
+        card.classList.add('flip');
+      }
+    });
+
+    showCountdown(duration);
+
+    setTimeout(() => {
+      allCards.forEach(card => {
+        card.classList.remove('hint-hide'); // 검은 가림막 제거
+        if (!card.classList.contains('matched')) {
+          card.classList.remove('flip');
+        }
+      });
+      lock = false;
+    }, duration);
+
+    if (!isAuto) {
+      hintCount--;
+      hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
+      if (hintCount <= 0) {
+        hintBtn.disabled = true;
+        hintBtn.style.opacity = 0.6;
+        hintBtn.style.cursor = 'not-allowed';
+      }
+    }
+  }
+
+  // 힌트 버튼 클릭
+  hintBtn.addEventListener('click', () => showHint(false, 3000));
+
+  function showCountdown(duration) {
+    const seconds = Math.floor(duration / 1000);
+    let current = seconds;
+
+    hintOverlay.style.display = 'flex';
+    hintOverlay.setAttribute('aria-hidden', 'false');
+    hintCountdown.textContent = current;
+
+    const interval = setInterval(() => {
+      current--;
+      if (current <= 0) {
+        clearInterval(interval);
+        hintOverlay.style.display = 'none';
+        hintOverlay.setAttribute('aria-hidden', 'true');
+      } else {
+        hintCountdown.textContent = current;
+        hintCountdown.classList.remove('hint-countdown'); // 트리거 리셋
+        void hintCountdown.offsetWidth; // reflow
+        hintCountdown.classList.add('hint-countdown');
+      }
+    }, 1000);
+  }
+
+  /* 데이터 로드 */
+  async function loadList(){
+    try {
+      // manifest.json 전체를 불러옴
+      const r = await fetch('../assets/images/games/memory/manifest.json', { cache: 'no-store' });
+      const manifest = await r.json();
+
+      if (currentCat) {
+        // 선택된 카테고리만
+        allFiles = manifest[currentCat] || [];
+      } else {
+        // 랜덤(모든 카테고리 합침)
+        allFiles = Object.values(manifest).flat();
+      }
+    } catch {
+      allFiles = [];
+    }
+  }
+
+  /* 덱/그리드 */
+  function makeDeck(r,c){
+    const total=r*c; if(total%2===1) return [];
+    const pairs=total/2; if(allFiles.length<pairs) return [];
+    const chosen=$shuffle([...allFiles]).slice(0,pairs);
+    return $shuffle([...chosen,...chosen]);
+  }
+
+  function fitGrid(rows, cols){
+    const panelEl = document.querySelector('.panel');
+    const availW  = panelEl.clientWidth;
+    const availH  = panelEl.clientHeight - headEl.offsetHeight - 12;
+
+    const gap  = 12;
+    const sizeW = Math.floor((availW - (cols - 1) * gap) / cols);
+    const sizeH = Math.floor((availH - (rows - 1) * gap) / rows);
+    const size  = Math.max(40, Math.min(sizeW, sizeH));
+
+    grid.style.setProperty('--cols', String(cols));
+    grid.style.setProperty('--size', (size - 20) + 'px');
+  }
+
+  async function renderGrid(){
+    lock=false; first=second=null; matchedPairs=0;
+    grid.innerHTML='';
+    const deck=makeDeck(rows,cols);
+    if(!deck.length) return;
+    totalPairs=deck.length/2;
+
+    deck.forEach(src => {
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const front = document.createElement('div');
+      front.className = 'face front';
+      const img = document.createElement('img');
+      img.src = src;
+      if (shouldFill(src)) img.classList.add('fill');
+      front.appendChild(img);
+
+      const back = document.createElement('div');
+      back.className = 'face back';
+
+      // 검은 오버레이 레이어 추가
+      const blackCover = document.createElement('div');
+      blackCover.className = 'cover-black';
+      card.appendChild(blackCover);
+
+      card.appendChild(front);
+      card.appendChild(back);
+
+      card.addEventListener('click', () => flip(card, src));
+      grid.appendChild(card);
+    });
+    fitGrid(rows,cols);
+  }
+
+  function flip(card,src){
+    if(lock||card.classList.contains('flip')||card.classList.contains('matched')) return;
+    card.classList.add('flip');
+    if(!first){ first={card,src}; return; }
+    second={card,src};
+    if(first.src===second.src){
+      first.card.classList.add('matched'); second.card.classList.add('matched');
+      matchedPairs++; first=second=null;
+      if (matchedPairs === totalPairs) {
+        setTimeout(()=> openWinModal(), 120); // flip 애니 끝난 뒤 살짝 딜레이
+      }
+    }else{
+      lock=true;
+      setTimeout(()=>{ first.card.classList.remove('flip'); second.card.classList.remove('flip'); first=second=null; lock=false; },650);
+    }
+  }
+
+  window.addEventListener('resize', ()=>fitGrid(rows,cols));
+
+  /* init */
+  (async()=>{
+    // 기본은 펼침(true)
+    let collapsed = false;
+
+    // localStorage 값이 있으면 복원
+    const saved = localStorage.getItem('catsCollapsed');
+    if (saved !== null) {
+      collapsed = saved === '1';
+    }
+
+    setCatsCollapsed(collapsed);  // <- 이걸로 반영
+
+    currentCat = null;
+    renderCategories();
+    await loadList();
+
+    // 기본은 4x5
+    rows = 4;
+    cols = 5;
+
+    // 만약 이미지가 부족하면 fallback
+    if (allFiles.length < (rows * cols / 2)) {
+      const start = PRESETS.find(([r,c])=> allFiles.length >= (r*c/2)) || PRESETS[0];
+      rows = start[0];
+      cols = start[1];
+    }
+
+    renderSizeSeg();
+    renderGrid();
+
+    startOverlay.classList.remove('hidden');
+  })();
+
+  // 뒤로가기 버튼 이벤트
+  const backBtn = document.getElementById('backBtn');
+  backBtn.addEventListener('click', ()=>{
+    if (window.history.length > 1) {
+      // 이전 페이지가 있으면 이동
+      window.history.back();
+    } else {
+      // 없으면 메인으로 강제 이동
+      window.location.href = '/index.html';
+    }
+  });
+</script>
+
+<!-- WIN MODAL -->
+<div id="winModal" class="modal" aria-hidden="true" role="dialog" aria-label="축하 모달">
+  <div class="modal__box" role="document">
+    <div class="modal__media-wrap">
+      <video id="winVideo" class="modal__media" playsinline muted preload="auto">
+        <source src="/assets/media/common/fanfare.mp4" type="video/mp4">
+        <source src="/assets/media/common/fanfare.mov" type="video/quicktime">
+      </video>
+      <!-- 오버레이 텍스트 -->
+      <div class="modal__label"></div>
+    </div>
+    <!--        <div class="modal__footer">-->
+    <!--            <button id="replayBtn" class="modal__btn modal__btn&#45;&#45;ghost">다시보기</button>-->
+    <!--            <button id="closeBtn"  class="modal__btn modal__btn&#45;&#45;primary">닫기</button>-->
+    <!--        </div>-->
+  </div>
+</div>
+<script>
+  // ====== Win Modal logic (robust) ======
+  const winModal = document.getElementById('winModal');
+  const winVideo = document.getElementById('winVideo');
+  const replayBtn = document.getElementById('replayBtn');
+  const closeBtn  = document.getElementById('closeBtn');
+
+  // 후보 소스 (MP4 우선)
+  const VIDEO_SOURCES = [
+    { src: '../assets/media/common/fanfare.mp4', type: 'video/mp4' },
+    { src: '../assets/media/common/fanfare.mov',    type: 'video/quicktime' },
+  ];
+
+  // 브라우저 지원 형식 중 최적 소스 고르기
+  function pickBestSource() {
+    const can = (type) => (winVideo.canPlayType && winVideo.canPlayType(type)) || '';
+    // MP4(H.264/AAC) 우선
+    if (can('video/mp4; codecs="avc1.42E01E, mp4a.40.2"') || can('video/mp4')) {
+      return VIDEO_SOURCES.find(s => s.type === 'video/mp4') || VIDEO_SOURCES[0];
+    }
+    // 그 외엔 MOV 시도 (주로 Safari)
+    if (can('video/quicktime')) {
+      return VIDEO_SOURCES.find(s => s.type === 'video/quicktime') || VIDEO_SOURCES[0];
+    }
+    // 그래도 모르겠으면 첫번째
+    return VIDEO_SOURCES[0];
+  }
+
+  async function tryPlayVideo() {
+    // iOS/Safari 자동재생 호환
+    winVideo.muted = true;
+    winVideo.playsInline = true;
+
+    try { winVideo.load(); } catch (_) {}
+
+    // 메타데이터 로드되면 한 번 더 시도
+    const onceCanPlay = new Promise(resolve => {
+      const onCanPlay = () => { winVideo.removeEventListener('canplay', onCanPlay); resolve(); };
+      winVideo.addEventListener('canplay', onCanPlay, { once: true });
+      // 혹시 이미 로드됐으면 즉시 resolve
+      if (winVideo.readyState >= 2) { winVideo.removeEventListener('canplay', onCanPlay); resolve(); }
+    });
+
+    // 바로 시도 + canplay 후 재시도
+    try {
+      const p = winVideo.play();
+      if (p && typeof p.then === 'function') await p;
+      return true;
+    } catch (_) {
+      // 무시하고 canplay 후 한 번 더
+    }
+
+    await onceCanPlay;
+    try {
+      const p2 = winVideo.play();
+      if (p2 && typeof p2.then === 'function') await p2;
+      return true;
+    } catch (_) {
+      // 자동재생 정책 등으로 막히면 컨트롤 노출
+      winVideo.setAttribute('controls', '');
+      return false;
+    }
+  }
+
+  function setVideoSource() {
+    const pick = pickBestSource();
+    // <source> 교체 대신 src로 직접 지정 (간결 & 신뢰성↑)
+    // 기존 <source> 자식 제거
+    while (winVideo.firstChild) winVideo.removeChild(winVideo.firstChild);
+    winVideo.removeAttribute('src');
+    winVideo.src = pick.src;
+    winVideo.type = pick.type || '';
+  }
+
+  function openWinModal() {
+    setVideoSource();
+
+    // 열기
+    winModal.classList.add('open');
+    winModal.setAttribute('aria-hidden', 'false');
+
+    // 재생 시도
+    tryPlayVideo();
+
+    // 자동 닫기: 6초 후
+    setTimeout(closeWinModal, 6000);
+  }
+
+  function closeWinModal() {
+    winModal.classList.remove('open');
+    winModal.setAttribute('aria-hidden', 'true');
+    try { winVideo.pause(); } catch (_) {}
+    // 다음에 다시 열면 자동재생 시도하게 컨트롤 제거
+    winVideo.removeAttribute('controls');
+  }
+
+  // 바깥 클릭으로 닫기 (박스 내부 클릭은 전파 방지)
+  winModal.addEventListener('click', (e) => {
+    if (e.target === winModal) closeWinModal();
+  });
+  const modalBox = winModal.querySelector('.modal__box');
+  if (modalBox) {
+    modalBox.addEventListener('click', (e) => e.stopPropagation());
+  }
+
+  // 버튼 액션
+  replayBtn.addEventListener('click', () => {
+    try {
+      winVideo.currentTime = 0;
+      winVideo.play().catch(() => {
+        winVideo.setAttribute('controls', '');
+      });
+    } catch (_) {}
+  });
+  closeBtn.addEventListener('click', closeWinModal);
+
+  // ESC로 닫기
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && winModal.classList.contains('open')) closeWinModal();
+  });
+
+  // 전역에서 호출할 수 있게
+  window.openWinModal = openWinModal;
+  window.closeWinModal = closeWinModal;
+</script>
+</body>
+</html>

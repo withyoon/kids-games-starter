@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <link rel="manifest" href="manifest.json">
+  <title>하은 놀이터</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Noto Sans KR', sans-serif;
+      background: #fff; /* 그라데이션 제거 */
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .card {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 32px;
+      border-radius: 16px;
+      background: #fff;
+      border: 2px solid #eee;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      text-align: center;
+      text-decoration: none;
+      color: #111;
+    }
+
+    .card h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .card p {
+      margin: 0;
+      font-size: 18px;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="grid">
+      <a class="card" href="games/memory.html">
+        <h2>메모리 게임</h2>
+        <p>뒤집어서 똑같은 그림을 찾아봐요!</p>
+      </a>
+      <!--<a class="card" href="games/bingo.html">
+        <h2>빙고 게임</h2>
+        <p>칸을 꾹꾹 눌러서 5줄을 먼저 만들어요!</p>
+      </a>
+      <a class="card" href="games/plant.html">
+        <h2>물 주기 화분</h2>
+        <p>물을 주면 쑥쑥! 우리 화분 키우기 🌱</p>
+      </a>
+      <a class="card" href="games/math.html">
+        <h2>연산 문제</h2>
+        <p>덧셈 뺄셈 곱셈으로 머리 쑥쑥 💡</p>
+      </a>
+      <a class="card" href="games/media.html">
+        <h2>노래·영상</h2>
+        <p>좋아하는 노래랑 영상 골라 보아요 🎵</p>
+      </a>-->
+    </div>
+  </div>
+  <script>
+    if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }
+  </script>
+</body>
+</html>

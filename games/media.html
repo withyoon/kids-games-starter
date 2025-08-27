@@ -1,0 +1,71 @@
+
+<!doctype html><html lang="ko"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="../stylesheet" href="../styles/app.css" onload="this.rel='stylesheet'">
+<title>노래 · 영상</title>
+<style>
+  .list{display:grid;gap:10px}
+  .row{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);padding:10px;border-radius:12px;background:#fff}
+  .row small{opacity:.7}
+  .player{margin-top:12px}
+</style>
+</head><body>
+<div class="container">
+  <h1>노래 · 영상</h1>
+  <div class="card">
+    <div class="toolbar">
+      <input type="file" id="picker" multiple accept="audio/*,video/*">
+      <button id="loadSamples">샘플 불러오기</button>
+    </div>
+    <div id="list" class="list"></div>
+    <div class="player" id="player"></div>
+  </div>
+  <p class="footer"><a href="../index.html" class="btn" style="text-decoration:none">← 메뉴</a></p>
+</div>
+<script type="module">
+import { $, $all } from '../js/common.js';
+
+const list=$('#list'), player=$('#player');
+
+function renderItem(file, url){
+  const row = document.createElement('div');
+  row.className='row';
+  row.innerHTML = \`
+    <div>
+      <strong>\${file.name}</strong><br><small>\${Math.round(file.size/1024)} KB</small>
+    </div>
+    <button class="play">재생</button>
+  \`;
+  row.querySelector('.play').addEventListener('click', ()=>{
+    player.innerHTML='';
+    if(file.type.startsWith('audio')){
+      const a=document.createElement('audio'); a.src=url; a.controls=true; a.autoplay=true;
+      player.appendChild(a);
+    }else{
+      const v=document.createElement('video'); v.src=url; v.controls=true; v.autoplay=true; v.playsInline=true; v.style.maxHeight='60vh';
+      player.appendChild(v);
+    }
+  });
+  list.appendChild(row);
+}
+
+$('#picker').addEventListener('change', (e)=>{
+  list.innerHTML='';
+  const files = [...e.target.files];
+  files.forEach(f=>{
+    const url = URL.createObjectURL(f);
+    renderItem(f, url);
+  });
+});
+
+// 샘플 파일(로컬에 파일이 없을 때)
+$('#loadSamples').addEventListener('click', ()=>{
+  list.innerHTML='';
+  const samples=[
+    {name:'sample-audio.mp3', type:'audio', url:'../assets/media/sample-audio.mp3'},
+    {name:'sample-video.mp4', type:'video', url:'../assets/media/sample-video.mp4'}
+  ];
+  samples.forEach(s=> renderItem({name:s.name, size:12345, type:s.type}, s.url));
+});
+</script>
+</body></html>
