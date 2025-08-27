@@ -470,6 +470,8 @@
     hintCount = 2;
     hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
     hintBtn.disabled = false;
+    hintBtn.style.opacity = 1;
+    hintBtn.style.cursor = 'pointer';
 
     startOverlay.classList.remove('hidden');
   });
@@ -492,6 +494,8 @@
     hintCount = 2;
     hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
     hintBtn.disabled = false;
+    hintBtn.style.opacity = 1;
+    hintBtn.style.cursor = 'pointer';
     renderGrid();
 
     showHint(true, 3000);  // 자동 실행: 3초
