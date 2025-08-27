@@ -469,6 +469,7 @@
     // 초기화
     hintCount = 2;
     hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
+    hintBtn.disabled = false;
 
     startOverlay.classList.remove('hidden');
   });
@@ -490,6 +491,7 @@
     // 초기화
     hintCount = 2;
     hintBtn.textContent = `뒤집기 찬스 (${hintCount})`;
+    hintBtn.disabled = false;
     renderGrid();
 
     showHint(true, 3000);  // 자동 실행: 3초
