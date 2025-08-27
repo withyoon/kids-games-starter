@@ -1,5 +1,5 @@
 
-const CACHE='kids-games-v1';
+const CACHE='kids-games-v2';
 const ASSETS = [
     '/', '/index.html',
     '/manifest.json', '/sw.js',
